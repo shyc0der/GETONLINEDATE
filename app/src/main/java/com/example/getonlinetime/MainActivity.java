@@ -23,8 +23,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
     private TextView textView;
@@ -71,11 +73,21 @@ public class MainActivity extends AppCompatActivity {
                             result.append(line);
                         in.close();
                     }
+
                     else{
                         return "error on fetching";
                     }
+                    JSONObject object=new JSONObject(String.valueOf(result));
+                    try {
+                        object.put("onlineDate",object.getString("datetime"));
+
+                    }catch (JSONException e){
+                        e.printStackTrace();
+                    }
+                    Log.e("******object",object.getString("datetime"));
                     Log.e("******",result.toString());
-                    return result.toString();
+
+                    return object.getString("datetime");
 
 
 
@@ -106,31 +118,47 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String time) {
             Calendar calendar=Calendar.getInstance();
-            SimpleDateFormat dateFormat=new SimpleDateFormat("yyyy-MM-dd hh:mm");
+            SimpleDateFormat dateFormat=new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
             String times=dateFormat.format(calendar.getTime());
 
-            try {
-                JSONArray arr = new JSONArray(time);
-                JSONObject jObj = arr.getJSONObject(0);
-                String date = jObj.getString("datetime");
-                Log.e("timesonline",date);
-            }catch (JSONException e){
-                e.printStackTrace();
-            }
 
+
+            Log.e("timrs",time);
             Log.e("times",times);
 
 
-
-
             try {
-                String areaTime = time.substring(time.indexOf(String.valueOf(times)), time.indexOf(String.valueOf(times))+4 ).trim();
+                int index=16;
+                String times2 =time.substring(0,index);
+                Date date1 = dateFormat.parse(times2);
+                Date date2 = dateFormat.parse(times);
+                Log.e("dates",date1.toString());
+                Log.e("dates",date2.toString());
+              if(date1.compareTo(date2) < 0)
+              {
+                  Toast.makeText(MainActivity.this, "hello date", Toast.LENGTH_LONG).show();
+              }else{
+                  Toast.makeText(MainActivity.this, "correct date ", Toast.LENGTH_LONG).show();
+              }
 
 
-                Toast.makeText(MainActivity.this, "The actual time is" +areaTime, Toast.LENGTH_LONG).show();
+
+                Log.e("timrs",times2);
+                if(times2 == times){
+                   Toast.makeText(MainActivity.this, "The actual time is" +times2, Toast.LENGTH_LONG).show();
+                    Log.e("timrs",times2);
+                }
+                else{
+                    Toast.makeText(MainActivity.this, "wrong time" +times2, Toast.LENGTH_LONG).show();
+                }
+               // String areaTime = time.substring(time.indexOf(String.valueOf(times)), time.indexOf(String.valueOf(times))+4 ).trim();
+
+
+
             }
-            catch (IndexOutOfBoundsException e){
+            catch (IndexOutOfBoundsException | ParseException e){
                 Toast.makeText(MainActivity.this, "Mobile time is not correct", Toast.LENGTH_LONG).show();
+                e.printStackTrace();
             }
 
         }
